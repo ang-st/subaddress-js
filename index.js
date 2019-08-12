@@ -5,6 +5,28 @@ const Buffer = require('safe-buffer').Buffer;
 
 const ed25519 = require('elliptic').eddsa('ed25519');
 
+
+
+const networks = {
+  mainnet: {
+    PUBLIC_ADDRESS_PREFIX :'12',
+    PUBLIC_INTEGRATED_ADDRESS_PREFIX : '13',
+    PUBLIC_SUBADDRESS_PREFIX : '2a'
+  
+  },
+  testnet: {
+    PUBLIC_ADDRESS_PREFIX :'35',
+    PUBLIC_INTEGRATED_ADDRESS_PREFIX : '36',
+    PUBLIC_SUBADDRESS_PREFIX : '3f',
+  
+  },
+  stagenet: {
+    PUBLIC_ADDRESS_PREFIX :'18',
+    PUBLIC_INTEGRATED_ADDRESS_PREFIX : '19',
+    PUBLIC_SUBADDRESS_PREFIX : '24'
+  
+  }
+}
 const cnBase58 = (function () {
   var b58 = {};
   var alphabet_str = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
@@ -139,8 +161,6 @@ function asciiToHex(str) {
   return a.join('');
 }
 
-const PUBLIC_ADDRESS_PREFIX_HEX = '12';
-const PUBLIC_SUBADDRESS_PREFIX_HEX = '2a';
 const SUBADDR_HEX = asciiToHex('SubAddr') + '00';
 
 function getSubaddressPublicSpendKeyPoint(privateViewKeyBytes, publicSpendKeyBytes, accountIndex, subaddressIndex) {
@@ -154,18 +174,18 @@ function getSubaddressPublicSpendKeyPoint(privateViewKeyBytes, publicSpendKeyByt
   return D;
 }
 
-function getSubaddress(privateViewKeyHex, publicSpendKeyHex, accountIndex, subaddressIndex) {
+function getSubaddress(privateViewKeyHex, publicSpendKeyHex, accountIndex, subaddressIndex, network='mainnet') {
 
   let addressPrefix;
   let C, D;
-
+  let constants= networks[network]
   if(accountIndex==0 && subaddressIndex==0) {
-    addressPrefix = PUBLIC_ADDRESS_PREFIX_HEX;
+    addressPrefix = constants.PUBLIC_ADDRESS_PREFIX;
     D = ed25519.decodePoint(publicSpendKeyHex);
     C = ed25519.curve.g.mul(elliptic.utils.intFromLE(privateViewKeyHex));
   }
   else {
-    addressPrefix = PUBLIC_SUBADDRESS_PREFIX_HEX;
+    addressPrefix = constants.PUBLIC_SUBADDRESS_PREFIX;
     D = getSubaddressPublicSpendKeyPoint(privateViewKeyHex, publicSpendKeyHex, accountIndex, subaddressIndex);
     C = D.mul(elliptic.utils.intFromLE(privateViewKeyHex));
   }
